@@ -1,0 +1,4 @@
+hmmlearn==0.2.6
+Keras==2.2.4
+numpy==1.18.2
+scikit-learn==0.22.2
