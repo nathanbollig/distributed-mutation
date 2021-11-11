@@ -13,13 +13,21 @@ The following is a summary of what this program does:
 3. Train the designated `model_type` on the training set, report performance on the validation set.
 4. Store output
 
-The output is a pickle file `phase_1_2_results.pkl`, which is a tuple of the following items:
+The following objects are created:
     model: Keras model object
     result: dictionary of model performance statistics during training and validation
-    X_list: list of datasets [X_train, X_val, X_test]
-    y_list: list of corresponding labels [y_train, y_val, y_test]
+    X_train, X_val, X_test: one-hot-encoding synthetic sequences
+    y_train, y_val, y_test: integer labels (0 or 1)
     gen: the HMMGenerator object used to generate the dataset
     aa_vocab: the ordered amino acid character alphabet used for the sequence encoding
+
+The objects created by this program are saved to disk into the following pickle files:
+    model.pkl: tuple (model, result)
+    aa_vocab.pkl: aa_vocab
+    generator.pkl: gen
+    data_train.pkl: tuple (X_train, y_train)
+    data_val.pkl: tuple (X_val, y_val)
+    data_test.pkl: tuple (X_test, y_test)
 """
 
 from seq_model import big_bang
@@ -43,6 +51,21 @@ if __name__ == "__main__":
                                       model_type=args.model_type,
                                       n_epochs=args.n_epochs)
 
+    # Unpack the results tuple
+    model, result, X_list, y_list, gen, aa_vocab = big_bang_result_tuple
+    X_train, X_val, X_test = X_list
+    y_train, y_val, y_test = y_list
+
     # Save results to disk
-    with open("phase_1_2_results.pkl", 'wb') as pfile:
-        pickle.dump(big_bang_result_tuple, pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("model.pkl", 'wb') as pfile:
+        pickle.dump((model, result), pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("aa_vocab.pkl", 'wb') as pfile:
+        pickle.dump(aa_vocab, pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("generator.pkl", 'wb') as pfile:
+        pickle.dump(gen, pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("data_train.pkl", 'wb') as pfile:
+        pickle.dump((X_train, y_train), pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("data_val.pkl", 'wb') as pfile:
+        pickle.dump((X_val, y_val), pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("data_test.pkl", 'wb') as pfile:
+        pickle.dump((X_test, y_test), pfile, protocol=pickle.HIGHEST_PROTOCOL)
