@@ -21,18 +21,19 @@ The following objects are created:
     gen: the HMMGenerator object used to generate the dataset
     aa_vocab: the ordered amino acid character alphabet used for the sequence encoding
 
-The objects created by this program are saved to disk into the following pickle files:
-    model.pkl: tuple (model, result)
+The objects created by this program are saved to disk into the following  files:
+    model.tf: Keras SavedModel format
     aa_vocab.pkl: aa_vocab
     generator.pkl: gen
-    data_train.pkl: tuple (X_train, y_train)
-    data_val.pkl: tuple (X_val, y_val)
-    data_test.pkl: tuple (X_test, y_test)
+    data_train.txt: each line is comma-delimited sequence + tab + label
+    data_val.txt: each line is comma-delimited sequence + tab + label
+    data_test.txt: each line is comma-delimited sequence + tab + label
 """
 
 from seq_model import big_bang
 import argparse
 import pickle
+import numpy as np
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -53,19 +54,47 @@ if __name__ == "__main__":
 
     # Unpack the results tuple
     model, result, X_list, y_list, gen, aa_vocab = big_bang_result_tuple
-    X_train, X_val, X_test = X_list
-    y_train, y_val, y_test = y_list
+    #X_train, X_val, X_test = X_list
+    #y_train, y_val, y_test = y_list
 
-    # Save results to disk
-    with open("model.pkl", 'wb') as pfile:
-        pickle.dump((model, result), pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    # Save data as text files
+    # Each line is one integer-encoded sequence, column delimited
+    # followed by a tab and then the label (0 or 1).
+    datasets = ["train", "val", "test"]
+
+    for i in range(3):
+        # Get dataset
+        X = X_list[i]
+        y = y_list[i]
+        dataset_descriptor = datasets[i]
+        
+        # Convert to integer encoding
+        X = np.argmax(X, axis=2)
+
+        # Generate string to output
+        output = ""
+        for i, seq in enumerate(X):
+            for j in range(len(seq)):
+                val = str(int(seq[j]))
+                if j==0:
+                    delim = ''
+                else:
+                    delim = ','
+                output = output + delim + val
+            label = str(int(y[i]))
+            output = output + '\t' + label + '\n'
+
+        # Write string to output
+        with open("data_" + dataset_descriptor + ".txt", "w") as text_file:
+            text_file.write(output)
+
+    # Save model as tf format
+    model.save('model.tf')
+
+    # Save other objects to disk
     with open("aa_vocab.pkl", 'wb') as pfile:
         pickle.dump(aa_vocab, pfile, protocol=pickle.HIGHEST_PROTOCOL)
     with open("generator.pkl", 'wb') as pfile:
         pickle.dump(gen, pfile, protocol=pickle.HIGHEST_PROTOCOL)
-    with open("data_train.pkl", 'wb') as pfile:
-        pickle.dump((X_train, y_train), pfile, protocol=pickle.HIGHEST_PROTOCOL)
-    with open("data_val.pkl", 'wb') as pfile:
-        pickle.dump((X_val, y_val), pfile, protocol=pickle.HIGHEST_PROTOCOL)
-    with open("data_test.pkl", 'wb') as pfile:
-        pickle.dump((X_test, y_test), pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("result.pkl", 'wb') as pfile:
+        pickle.dump(result, pfile, protocol=pickle.HIGHEST_PROTOCOL)
