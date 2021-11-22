@@ -21,4 +21,4 @@ Steps to generate the synthetic data set and train a classifier, on a local mach
 4. Run `phases_1_and_2.sh`.
 5. (Optional) Play through the notebook `explore_data.ipynb` to explore the size, shape, and example content from the output of this program.
 
-The output of these steps is a set of 6 pickle files saved to local disk, as defined in the header of `phases_1_and_2.py`. These files include the model object, a dictionary of model validation results, data, and an instance of the custom `HMMGenerator` class used to generate the sequences.
+The output of these steps is a set of files saved to local disk, as defined in the header of `phases_1_and_2.py`. These files include the model object, a dictionary of model validation results, data, and an instance of the custom `HMMGenerator` class used to generate the sequences.
