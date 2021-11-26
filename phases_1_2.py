@@ -46,6 +46,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Generate data and train a model
+    print("Running data generation and model training...")
     big_bang_result_tuple = big_bang(class_signal=args.class_signal,
                                       num_instances=args.n_generated,
                                       p=args.p,
@@ -54,39 +55,29 @@ if __name__ == "__main__":
 
     # Unpack the results tuple
     model, result, X_list, y_list, gen, aa_vocab = big_bang_result_tuple
-    #X_train, X_val, X_test = X_list
-    #y_train, y_val, y_test = y_list
+    X_train, X_val, X_test = X_list
+    y_train, y_val, y_test = y_list
 
     # Save data as text files
     # Each line is one integer-encoded sequence, column delimited
-    # followed by a tab and then the label (0 or 1).
-    datasets = ["train", "val", "test"]
+    # last column label (0 or 1).
+    
+    print("Printing test dataset to text file...")
 
-    for i in range(3):
-        # Get dataset
-        X = X_list[i]
-        y = y_list[i]
-        dataset_descriptor = datasets[i]
-        
-        # Convert to integer encoding
-        X = np.argmax(X, axis=2)
+    # Get dataset
+    X = X_list[2]
+    y = y_list[2]
+    dataset_descriptor = "test"
+    
+    # Convert to integer encoding
+    X = np.argmax(X, axis=2)
 
-        # Generate string to output
-        output = ""
-        for i, seq in enumerate(X):
-            for j in range(len(seq)):
-                val = str(int(seq[j]))
-                if j==0:
-                    delim = ''
-                else:
-                    delim = ','
-                output = output + delim + val
-            label = str(int(y[i]))
-            output = output + '\t' + label + '\n'
+    # Concatenate X and y
+    y = y.reshape((-1,1))
+    data = np.concatenate((X,y), axis=1)
 
-        # Write string to output
-        with open("data_" + dataset_descriptor + ".txt", "w") as text_file:
-            text_file.write(output)
+    # Write to text file
+    np.savetxt("data_" + dataset_descriptor + ".txt", data, delimiter=',', fmt="%i")
 
     # Save model as tf format
     model.save('model.tf')
@@ -98,3 +89,9 @@ if __name__ == "__main__":
         pickle.dump(gen, pfile, protocol=pickle.HIGHEST_PROTOCOL)
     with open("result.pkl", 'wb') as pfile:
         pickle.dump(result, pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("data_train.pkl", 'wb') as pfile:
+        pickle.dump((X_train, y_train), pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("data_val.pkl", 'wb') as pfile:
+        pickle.dump((X_val, y_val), pfile, protocol=pickle.HIGHEST_PROTOCOL)
+    with open("data_test.pkl", 'wb') as pfile:
+        pickle.dump((X_test, y_test), pfile, protocol=pickle.HIGHEST_PROTOCOL)
